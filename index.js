@@ -1,45 +1,91 @@
 import fs, { copyFileSync } from "fs";
+import fs1 from "fs/promises";
+
 let TODOS_HELP_FILE = 'help.txt';
 
-let Task = class {
-    constructor(name) {
-      this.name = name;
-      this.done = false;
+class Task  {
+    constructor(name,id) {
+        this.id = id,
+        this.name = name;
+        this.done = 'false';
     }
   };
+
 
 async function runTodos(myArgs){
     let filename = 'tasks.json';
     let content;
     let tasks;
     let task;
+    let id;
+    let title;
+    let arg; 
+    let status;
 
     await createFileIfNotExists(filename);
-    switch(myArgs[0]){
+
+    let base_function = myArgs[0];
+    switch(base_function){
         case ('create'):
-            if(myArgs.slice(1).join(' ')){
-                task = new Task(myArgs.slice(1).join(' '));
-                content = await readTasksFile(filename);
-                tasks = await addToTaskList(content, task);
-                await writeToFile(filename, tasks);
+            content = await MyReadFile(filename);
+            arg = checkParam(myArgs[1],['-t','--title']);
+            if (arg!=-1) {
+                title = myArgs[1].split('=')[1];
+                content = await MyReadFile(filename);
+                id= ++content.last_id
+                task = new Task(title,id);
+                tasks = await addToTaskList(content.tasks, task);
+                content.last_id = id;
+                content.tasks = tasks;
+                await writeToFile(filename, content);
+            }
+            else{
+                console.log(showHelp(TODOS_HELP_FILE));
             }
             break;
         case ('update'):
-            content = await readTasksFile(filename);
-            tasks = await updateTask(content, myArgs[1]);
-            await writeToFile(filename, tasks);
+            content = await MyReadFile(filename);
+            id =  checkParam(myArgs[1],['--id']);
+            id = myArgs[1].split('=')[1];
+            //verify id with typescript
+            if(myArgs.length>=3){
+                status =  checkParam(myArgs[2],['--status']);
+                //verify status with typescript
+                status = myArgs[2].split('=')[1];
+                if (status == -1) {
+                    console.log(showHelp(TODOS_HELP_FILE));
+                    break;
+                }
+            }
+            else{
+                status = 'false';
+            }
+            if(id) {
+                content.tasks = await updateTask(content.tasks, id, status);
+                await writeToFile(filename, content);
+            }
+            else{
+                console.log(showHelp(TODOS_HELP_FILE));
+            }
             break;
         case ('show'):
             readTasks(filename, myArgs[1]);
             break;    
         case ('delete'):
-            content = await readTasksFile(filename);
-            content = deleteTask(content, myArgs[1]);
-            await writeToFile(filename, content);
+            content = await MyReadFile(filename);
+            id = checkParam(myArgs[1],['--id']);
+            id = myArgs[1].split('=')[1];
+            if(id!= -1) {
+                content.tasks = deleteTask(content.tasks, id);
+                await writeToFile(filename, content);
+            }
+            else{
+                console.log(showHelp(TODOS_HELP_FILE));
+            }
             break;
         case ('remove-comepleted'):
-             content = await readTasksFile(filename);
-             content = removeCompleted(content);
+             content = await MyReadFile(filename);
+             content.tasks = removeCompleted(content.tasks);
              await writeToFile(filename, content);
             break;
         case ('help'):
@@ -69,19 +115,27 @@ async function addToTaskList(content, taskname){
     return content;
 
 }
-function updateTask(tasklist, taskname){
-    const foundIndex = tasklist.findIndex(element => element.name == taskname);
+function updateTask(tasklist, task_id,status="false"){
+
+    let foundIndex = -1;
+    for (let i=0 ; i<tasklist.length; i++) {
+        if(tasklist[i].id == task_id) {
+            tasklist[i].done = status;
+            break;
+        }
+    }
     if(foundIndex == -1){
         return tasklist;
     }
-    tasklist[foundIndex].done = true;
+
     return tasklist;
 }
 
 async function readTasks(filename, filter = null){
      let argument = checkParam(filter, ['--filter', '-f']);
+
     if(filter ){
-        if(argument){
+        if(argument != -1){
             filter = filter.split('=')[1];
 
         }
@@ -94,13 +148,14 @@ async function readTasks(filename, filter = null){
     else{
         filter = 'all';
     }
-    let content = await readTasksFile(filename);
+    let content = await MyReadFile(filename);
+
     switch(filter){
         case('completed'):
-            content = content.filter((element)=>element.done == true);
+            content = content.tasks.filter((element)=>element.done == 'true');
             break;
         case('open'):
-            content = content.filter((element)=>element.done == false);
+            content = content.tasks.filter((element)=>element.done == 'false');
             break
         case('all'):
         default:
@@ -116,18 +171,25 @@ function removeCompleted(content){
 }
 
 
-function deleteTask(content, taskname){
-    const foundIndex = content.findIndex(element => element.name == taskname);
+function deleteTask(content, task_id){
+    let foundIndex = -1;
+    for (let i=0 ; i<content.length; i++) {
+        if(content[i].id == task_id) {
+            content.splice(i,1);
+            return content;
+
+        }
+    }
     if(foundIndex == -1){
         return content;
     }
-    content.splice(foundIndex,1);
     return content;
+
 }
 
 async function showHelp(filename){
     //console.log('help menu:\n your options are:\n \"create\" and task name\n \"update\" and task name in order to set to completed\n \"read all\" to see all tasks, all is the default\n \"read completed\" to see commpleted tasks\n \"read open\" to see open tasks\n \"delete\" and task name to delete a specific task\n \"remove-completed\" to remove completed tasks from list\n \"help\" to see your options\n');
-    let content = await MyReadFile(filename);
+    let content = await MyReadFile(filename, false);
     console.log(content);
 }
 //Add parameters to display either all tasks, completed tasks or open tasks
@@ -135,37 +197,46 @@ async function createFileIfNotExists(filename){
     if ( fs.existsSync(filename)) {
         return 1;
     }
-    fs.writeFile(filename, JSON.stringify(''), err => {
+
+    let Todo = {
+        last_id : 0,
+        tasks : []
+
+    }
+
+    await fs1.writeFile(filename, JSON.stringify(Todo), err => {
         if (err) {
-          console.error(err)
-          return 0;
+            console.error(err);
+            return 0;
         }
         return 1;
-      })
-
+    })
+   
 }
 
-async function readTasksFile(filename) {
-     return  JSON.parse(await fs.readFileSync(filename, 'utf8' , (err, data) => {
-        if (err) {
-          console.error(err)
-        }
-      }))
 
-}
 
-async function MyReadFile(filename) {
-    return  (await fs.readFileSync(filename, 'utf8' , (err, data) => {
-       if (err) {
-         console.error(err)
-       }
-     }))
+async function MyReadFile(filename, json = true) {
+    if(json){
+        return JSON.parse(( fs.readFileSync(filename, 'utf-8' , (err, data) => {
+            if (err) {
+              console.error(err)
+            }
+          })))
+    }
+    else{
+        return (await fs.readFileSync(filename, 'utf-8' , (err, data) => {
+            if (err) {
+              console.error(err)
+            }
+          }))
+    }
 
 }
 
 async function writeToFile(filename, content) {
     await createFileIfNotExists(filename);
-    fs.writeFile(filename, JSON.stringify(content,null,4), err => {
+    await fs1.writeFile(filename, JSON.stringify(content,null,4), err => {
         if (err) {
           console.error(err)
           return 0;
@@ -174,13 +245,15 @@ async function writeToFile(filename, content) {
       })
 }
 function checkParam(argument, paramList) {
+   
     if(argument){
         for (const element of paramList) {
             let length = element.length;
             if(argument.substring(0,length)== element){
+
                 return element;
             }
         }
     }
-    return false;
+    return -1;
 }
