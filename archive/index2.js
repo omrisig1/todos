@@ -266,8 +266,8 @@ function checkParam(argument, paramList) {
     //
 
     functions:
-    createFileIfNotExists
-    MyReadFile
-    checkParam - validation (check param and also need to check function)
-    writeToFile
-    task manipulation - remove from tasks, add to tasks, update task, remove completed, filter
+    // createFileIfNotExists
+    // MyReadFile
+    // checkParam - validation (check param and also need to check function)
+    // writeToFile
+    // task manipulation - remove from tasks, add to tasks, update task, remove completed, filter

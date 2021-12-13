@@ -11,7 +11,6 @@ class Task  {
     }
   };
 
-
 async function runTodos(myArgs){
     let filename = 'tasks.json';
     let content;
@@ -170,7 +169,6 @@ function removeCompleted(content){
     return content;
 }
 
-
 function deleteTask(content, task_id){
     let foundIndex = -1;
     for (let i=0 ; i<content.length; i++) {
@@ -214,8 +212,6 @@ async function createFileIfNotExists(filename){
    
 }
 
-
-
 async function MyReadFile(filename, json = true) {
     if(json){
         return JSON.parse(( fs.readFileSync(filename, 'utf-8' , (err, data) => {
@@ -257,3 +253,17 @@ function checkParam(argument, paramList) {
     }
     return -1;
 }
+
+
+//src
+    //--index.js
+    //storage
+    //util
+    //
+
+    functions:
+    // createFileIfNotExists
+    // MyReadFile
+    // checkParam - validation (check param and also need to check function)
+    // writeToFile
+    // task manipulation - remove from tasks, add to tasks, update task, remove completed, filter
