@@ -1,10 +1,14 @@
-interface UserRequest {
+
+ import { Task } from "../Entities/Task.js";
+import { CLIUserInteraction } from "../UserInteraction/CLIUserInteraction.js";
+
+export interface UserRequest {
     main_function : string,
     functions : Request[]
 }
-class TaskHandler{
-    interact : userInteraction;
-    constructor(userInteraction : userInteraction) {
+export class TaskHandler{
+    interact : CLIUserInteraction;
+    constructor(userInteraction : CLIUserInteraction) {
         this.interact = userInteraction
         
     }
@@ -14,11 +18,13 @@ class TaskHandler{
     }
 
     handleClient(){
+        console.log("USER REQUEST:");
         var myArgs = process.argv.slice(2);
+
         let UserRequest = this.interact.parser.parse(myArgs);
-        console.log(UserRequest);
-        TaskValidator.CLIValidation(UserRequest.main_function, UserRequest.functions);
-        this.activate_function(UserRequest);
+        console.log("USER REQUEST:",UserRequest);
+       // TaskValidator.CLIValidation(UserRequest.main_function, UserRequest.functions);
+       // this.activate_function(UserRequest);
     }
     
     activate_function(request : UserRequest){

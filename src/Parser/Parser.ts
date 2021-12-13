@@ -1,3 +1,0 @@
-interface Parser{
-    parse(...args);
-}

@@ -1,7 +1,8 @@
 import fs, { copyFileSync } from "fs";
 import fs1 from "fs/promises";
+import { Task } from "../Entities/Task.js";
 
-export class JsonFileStorage implements DB{
+class JsonFileStorage{
 
     file_name : string;
 
@@ -37,10 +38,11 @@ export class JsonFileStorage implements DB{
 
     }
     // remove from file
-    async removeCompletedFromFile(tasks : Task | Task[]){
-        tasks = [].concat(tasks);
+    async removeCompletedFromFile(tasks : Task[]){
+        tasks = [];
+        tasks = tasks.concat(tasks);
         let contents = await this.myReadFile();
-        contents = contents.filter(element => element.done == false);
+        contents = contents.filter((element:any) => element.done == false);
         await this.myWriteFile(contents)
 
     }
@@ -60,3 +62,5 @@ export class JsonFileStorage implements DB{
     }
 
 }
+
+export {JsonFileStorage}

@@ -1,30 +1,25 @@
-
-export interface Request {
-    function: string;
-    param: string;
-  }
-export class CLIParser{
-
-    parse( args : string[]){
+export class CLIParser {
+    parse(args) {
         let main_function = args[0];
         let functions = [];
         for (let element of args) {
-            let request : Request ={
+            let request = {
                 function: '',
                 param: ''
             };
             if (element[0] == '-') {
-                if(element[1]=='-'){
-                    element = element.slice(2)
-                }else{
-                    element = element.slice(1)
+                if (element[1] == '-') {
+                    element = element.slice(2);
+                }
+                else {
+                    element = element.slice(1);
                 }
             }
-            else{
+            else {
                 break;
             }
-            request.function= element.split('=')[0];
-            request.param= element.split('=')[1];
+            request.function = element.split('=')[0];
+            request.param = element.split('=')[1];
             functions.push(request);
         }
         let general_request = {

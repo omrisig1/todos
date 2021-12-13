@@ -1,3 +1,0 @@
-interface userInteraction{
-    parser:Parser;
-}
