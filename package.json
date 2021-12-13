@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "this is my new read me",
   "main": "index.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/omrisig1/todos#readme",
   "devDependencies": {
-    "@ajar/marker": "^1.3.2"
+    "@ajar/marker": "^1.3.2",
+    "@types/node": "^16.11.12",
+    "typescript": "^4.5.3"
   }
 }
