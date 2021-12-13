@@ -1,13 +1,9 @@
-interface Request {
+export interface Request {
     function: string;
     param: string;
   }
-class CLIParser implements Parser{
-    // validator : Validator;
-    // constructor(validator: Validator) {
-    //     this.validator = validator;
-    // }
-   
+export class CLIParser implements Parser{
+
     parse( args : string[]){
         let main_function = args[0];
         let functions = [];
@@ -27,6 +23,10 @@ class CLIParser implements Parser{
             request['param']= element.split('=')[1];
             functions.push(request);
         }
-        return [main_function, functions];
+        let general_request = {
+            main_function: main_function,
+            functions: functions
+        };
+        return general_request;
     }
 }
